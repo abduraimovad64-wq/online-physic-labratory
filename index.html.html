@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="uz"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LED va diodning volt-amper xarakteristikasi — onlayn laboratoriya</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Literata:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{--bg:#eef2ec;--grid:#d3ddd0;--card:#fbfdf9;--ink:#15221c;--mute:#55655b;--acc:#1f4fd8;--line:#b9c7b8;--ok:#13795b;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121c1a;--grid:#1d2b28;--card:#192624;--ink:#e6efe8;--mute:#9db1a6;--acc:#7da2ff;--line:#324540;--ok:#52d3a6}}
+:root[data-theme="dark"]{--bg:#121c1a;--grid:#1d2b28;--card:#192624;--ink:#e6efe8;--mute:#9db1a6;--acc:#7da2ff;--line:#324540;--ok:#52d3a6}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px;color:var(--ink);font:17px/1.65 Literata,Georgia,serif}
+main{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+h1,h2,h3,button,.lab{font-family:"Bricolage Grotesque",system-ui,sans-serif}
+h1{font-size:clamp(1.7rem,5vw,2.6rem);line-height:1.1;margin:.4em 0 .2em}h2{font-size:1.5rem;margin:1.4em 0 .3em}h3{margin:1em 0 .2em}
+p{max-width:70ch}.sub{color:var(--mute)}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0}
+nav button{border:1.5px solid var(--line);background:var(--card);color:var(--ink);padding:9px 16px;border-radius:999px;font-size:1rem;cursor:pointer}
+nav button[aria-selected=true]{background:var(--acc);border-color:var(--acc);color:#fff}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+section{display:none}section.on{display:block}
+.card{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:16px 18px;margin:14px 0}
+.f{font:600 1.15rem "Literata",serif;text-align:center;padding:14px;margin:12px 0;background:var(--bg);border-left:4px solid var(--acc);border-radius:6px;overflow-x:auto}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+svg text{font-family:"Bricolage Grotesque",sans-serif}
+.cmp{cursor:pointer}.cmp:hover .hl,.cmp:focus .hl{stroke:var(--acc);stroke-width:3}
+.ctl{display:grid;grid-template-columns:auto 1fr auto;gap:8px 12px;align-items:center}
+.ctl input[type=range]{width:100%;accent-color:var(--acc)}.ctl output{min-width:5.5em;text-align:right;font-weight:700}
+select,.act{font:inherit;padding:6px 10px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)}
+.act{cursor:pointer;background:var(--acc);color:#fff;border-color:var(--acc);font-family:"Bricolage Grotesque",sans-serif}.act.g{background:var(--card);color:var(--ink);border-color:var(--line)}
+canvas{width:100%;display:block;border-radius:10px;border:1.5px solid var(--line);background:var(--card)}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.95rem}td,th{border-bottom:1px solid var(--line);padding:5px 8px;text-align:right}th{font-family:"Bricolage Grotesque",sans-serif}
+#info{min-height:4.5em;border-left:4px solid var(--acc);padding:6px 12px;background:var(--bg);border-radius:6px}
+details{margin:8px 0}summary{cursor:pointer;font-weight:600}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;background:var(--bg);border:1px solid var(--line);font-size:.9rem}
+</style></head><body><main>
+<h1>Diod va yorugʻlik diodi (LED)<br>onlayn laboratoriyasi</h1>
+<p class="sub">Yarimoʻtkazgichli diodning volt-amper xarakteristikasini (VAX) oling, kuchlanish ortishi bilan LED qanday yorqinlashishini kuzating va p-n oʻtishni 3D da koʻring.</p>
+<nav role="tablist"><button role="tab" data-t="th" aria-selected="true">Nazariya</button><button role="tab" data-t="lab" aria-selected="false">Laboratoriya</button><button role="tab" data-t="d3" aria-selected="false">3D p-n oʻtish</button><button role="tab" data-t="q" aria-selected="false">Savollar</button></nav>
+
+<section id="th" class="on">
+<div class="card"><b class="lab">Mundarija</b><br><a href="#volt" data-go="volt">Volt</a> · <a href="#amper" data-go="amper">Amper</a> · <a href="#om" data-go="om">Om qonuni</a> · <a href="#pn" data-go="pn">p-n oʻtish va VAX</a></div>
+<h2 id="volt">Volt: kuchlanish birligi</h2><p>Kuchlanish — zaryadni bir nuqtadan ikkinchisiga koʻchirishda maydon bajargan ish: <b>U = A / q</b>. Birligi volt (V) italiyalik olim Alessandro Volta sharafiga qoʻyilgan; u 1800-yilda mis va rux disklaridan birinchi kimyoviy tok manbai — «Volta ustuni»ni yasagan. LEDda kuchlanish ostonadan oshganda tok keskin ortadi.</p>
+<h2 id="amper">Amper: tok kuchi birligi</h2><p>Tok kuchi — oʻtkazgich kesimidan vaqt birligida oʻtgan zaryad: <b>I = q / t</b>. Birligi amper (A) fransuz fizigi André-Marie Ampère nomi bilan atalgan. Laboratoriyada tok milliamperda oʻlchanadi: <b>1 A = 1000 mA</b>. Oddiy LED uchun xavfsiz tok ≈ 20 mA, 30 mA dan oshirmang.</p>
+<h2 id="om">Om qonuni</h2><p>1827-yilda Georg Om zanjirdagi tok kuchlanishga toʻgʻri, qarshilikka teskari proporsional ekanini aniqladi:</p><div class="f">I = U / R &nbsp;&nbsp; U = I · R &nbsp;&nbsp; R = U / I</div><p>Rezistor uchun VAX — toʻgʻri chiziq. Diod uchun esa egri chiziq (quyida), shuning uchun diodga Om qonuni faqat har bir nuqtada R = U/I (statik qarshilik) sifatida qoʻllanadi.</p>
+<h2 id="pn">p-n oʻtish qanday hosil boʻladi</h2>
+<p>p-tipdagi (kovak oʻtkazuvchanlik) va n-tipdagi (elektron oʻtkazuvchanlik) yarimoʻtkazgichlarni shunchaki mexanik tekkizish yetarli emas: ular orasidagi masofa bir necha atomlararo masofadan oshmasligi kerak. Shuning uchun n-tipdagi germaniy plastinkaga III guruh elementi (indiy) eritib payvandlanadi; akseptor atomlar kristallga diffuziyalanib, sirt yaqinida p-soha hosil qiladi. Chegarada kengligi ≈ 10⁻⁴–10⁻⁶ sm boʻlgan kontakt qatlam paydo boʻladi.</p>
+<svg viewBox="0 0 720 190" width="100%" role="img" aria-label="p-n oʻtish sxemasi">
+<rect x="40" y="30" width="280" height="90" rx="8" fill="#e5744a" opacity=".22" stroke="#e5744a"/><rect x="400" y="30" width="280" height="90" rx="8" fill="#3a7bff" opacity=".22" stroke="#3a7bff"/>
+<rect x="320" y="30" width="80" height="90" fill="#8a8" opacity=".25" stroke="currentColor" stroke-dasharray="4 3"/>
+<text x="180" y="25" text-anchor="middle" fill="currentColor" font-weight="700">p-soha (kovaklar +)</text><text x="540" y="25" text-anchor="middle" fill="currentColor" font-weight="700">n-soha (elektronlar −)</text>
+<g id="dots"></g>
+<text x="360" y="75" text-anchor="middle" fill="currentColor" font-size="13">tutuvchi</text><text x="360" y="92" text-anchor="middle" fill="currentColor" font-size="13">qatlam</text>
+<text x="340" y="112" fill="currentColor" font-size="16">−</text><text x="372" y="112" fill="currentColor" font-size="16">+</text>
+<line x1="40" y1="150" x2="680" y2="150" stroke="currentColor" opacity=".4"/><path d="M40 170 H320 V140 H400 V170 H680" fill="none" stroke="var(--acc)" stroke-width="2.5"/>
+<text x="360" y="186" text-anchor="middle" fill="currentColor" font-size="13">kontakt potensiallar ayirmasi φₖ (potensial toʻsiq)</text></svg>
+<p>Tashqi maydon boʻlmaganda elektronlar n dan p ga, kovaklar p dan n ga oʻta boshlaydi. Natijada n-soha musbat, p-soha manfiy zaryadlanadi va ikkala zaryad tashuvchining oʻtishiga toʻsqinlik qiluvchi <b>kontakt potensiallar ayirmasi</b> vujudga keladi.</p>
+<div class="cols">
+<div class="card"><h3>Toʻgʻri yoʻnalish</h3><p>p-sohaga “+”, n-sohaga “−” ulansa, asosiy zaryad tashuvchilar oʻtish tomon yuradi, toʻsiq pasayadi, p-n oʻtish torayadi va zanjirdan katta <b>toʻgʻri tok</b> oʻtadi. Qatlam qarshiligi kichik.</p></div>
+<div class="card"><h3>Teskari yoʻnalish</h3><p>Qutblar almashsa, asosiy tashuvchilar oʻtishdan uzoqlashadi, toʻsiq ortadi, oʻtish kengayadi. Faqat asosiy boʻlmagan tashuvchilar oʻtadi, shuning uchun <b>teskari tok</b> juda kichik. Qatlam qarshiligi katta (berkituvchi qatlam).</p></div></div>
+<h2>Volt-amper xarakteristikasi</h2>
+<p>p-n oʻtishning VAX i unga qoʻyilgan kuchlanish bilan undan oʻtayotgan tok orasidagi bogʻlanishdir:</p>
+<div class="f">I = I₀ [ exp( eU / kT ) − 1 ] &nbsp;&nbsp;(9.1)</div>
+<p>Bu yerda I — p-n oʻtishdan oʻtuvchi tok, I₀ — toʻyinish toki, U — tashqi kuchlanish, e — elektron zaryadi, k — Boltsman doimiysi, T — absolyut harorat. Xona haroratida (T ≈ 300 K) <b>kT/e ≈ 25,9 mV</b>.</p>
+<ul><li>Teskari kuchlanishda −U ≫ kT/e boʻlsa, exp(…) → 0 va <b>I ≈ −I₀</b>: tok kichik va kuchlanishga deyarli bogʻliq emas.</li><li>Toʻgʻri kuchlanishda tok eksponensial ortadi: kuchlanish har ≈ 60 mV (kT/e·ln10) ga ortganda tok taxminan 10 barobar oshadi (ideal diod uchun).</li></ul>
+<h2>Yorugʻlik diodi nima uchun yonadi</h2>
+<p>LEDda toʻgʻri tok elektronlar va kovaklarni oʻtishga olib keladi; ular rekombinatsiyalashganda energiya foton sifatida chiqadi. Foton energiyasi yarimoʻtkazgichning taqiqlangan zona kengligi E<sub>g</sub> ga yaqin:</p>
+<div class="f">E = hν = hc / λ ⇒ λ (nm) ≈ 1240 / E<sub>g</sub> (eV)</div>
+<p>Tok qanchalik katta boʻlsa, rekombinatsiya soni shunchalik koʻp, yorqinlik shunchalik katta. Demak yorqinlik <b>kuchlanishga emas, tokka</b> mutanosib. Kuchlanish ostonadan (qizil LED uchun ≈ 1,8–2 V) oshgandan keyingina tok keskin ortadi. Shu sababli LEDga <b>ketma-ket qarshilik</b> ulanadi:</p>
+<div class="f">I = ( U<sub>manba</sub> − U<sub>LED</sub> ) / R</div>
+<p>Toʻgʻri va teskari yoʻnalishlardagi qarshilik <b>R = U / I</b> orqali topiladi, <b>toʻgʻrilash koeffitsiyenti</b> esa bir xil |U| da K = I<sub>toʻgʻri</sub> / I<sub>teskari</sub>. Oʻzgaruvchan tokni oʻzgarmas tokka aylantirish (toʻgʻrilagich) aynan shu xususiyatga asoslangan. Nuqtaviy diodlar yuqori chastotali tebranishlarni detektorlaydi, yassi diodlar esa asosan oʻzgaruvchan tokni toʻgʻrilaydi.</p>
+<div class="card"><b>Ish tartibi (qoʻllanmadan):</b> 1-mashq — toʻgʻri tok uchun VAX; 2-mashq — teskari tok uchun VAX; 3-mashq — ossillograf yordamida VAX ni kuzatish. Natijalar jadvalga yoziladi, grafik millimetrli qogʻozga chiziladi. “Laboratoriya” boʻlimida 1- va 2-mashqni virtual bajarasiz.</div>
+</section>
+
+<section id="lab">
+<div class="card" id="goal"><div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap"><svg id="lamp" viewBox="0 0 80 110" width="90" aria-hidden="true"><circle id="lg" cx="40" cy="42" r="34" fill="#ffd21a" opacity="0" filter="url(#bl)"/><path id="lb" d="M40 10a28 28 0 0 0-14 52v14h28V62A28 28 0 0 0 40 10Z" fill="#888" stroke="currentColor" stroke-width="3"/><path d="M28 84h24M30 94h20" stroke="currentColor" stroke-width="3"/></svg><div><b class="lab">Laboratoriya vazifalari</b><ul id="tl" style="margin:4px 0;padding-left:20px"></ul><div id="gm" class="pill"></div></div></div>
+<p style="margin:10px 0 0"><label>Ostona kuchlanishi, V: <input id="th_in" type="number" step="0.05" style="width:6em" class="act g"></label> <button class="act" id="th_ok">Tekshirish</button> <span id="gm2"></span></p></div>
+<div class="card"><div class="ctl">
+<label for="vs">Manba kuchlanishi</label><input id="vs" type="range" min="-5" max="5" step="0.05" value="0"><output id="vso">0 V</output>
+<label for="rr">Qarshilik R</label><select id="rr"><option>100</option><option selected>220</option><option>470</option><option>1000</option></select><span>Ω</span>
+<label for="col">LED rangi</label><select id="col"><option value="0">Qizil</option><option value="1">Sariq</option><option value="2">Yashil</option><option value="3">Koʻk</option><option value="4">Oq</option></select><span id="lam" class="pill"></span></div></div>
+<div class="cols"><div class="card"><b class="lab">Sxema (asbobga bosing)</b>
+<svg id="ckt" viewBox="0 0 560 260" width="100%" role="img" aria-label="LED zanjiri">
+<defs><filter id="bl"><feGaussianBlur stdDeviation="9"/></filter></defs>
+<path d="M60 40H500V220H60Z" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M400 40V110M400 150V220" stroke="currentColor" stroke-width="2.5"/><circle cx="400" cy="40" r="4" fill="currentColor"/><circle cx="400" cy="220" r="4" fill="currentColor"/>
+<g class="cmp" tabindex="0" data-k="src"><rect class="hl" x="30" y="95" width="60" height="70" fill="var(--card)" stroke="none"/><path d="M42 112H78M52 126H68M42 140H78M52 154H68" stroke="currentColor" stroke-width="3"/><text x="96" y="118" fill="currentColor" font-size="14">E</text></g>
+<g class="cmp" tabindex="0" data-k="res"><rect class="hl" x="140" y="28" width="90" height="24" fill="var(--card)" stroke="currentColor" stroke-width="2.5"/><text id="rt" x="185" y="70" text-anchor="middle" fill="currentColor" font-size="13">220 Ω</text></g>
+<g class="cmp" tabindex="0" data-k="ma"><circle class="hl" cx="320" cy="40" r="22" fill="var(--card)" stroke="currentColor" stroke-width="2.5"/><text x="320" y="45" text-anchor="middle" fill="currentColor" font-size="14" font-weight="700">mA</text><text id="mt" x="320" y="82" text-anchor="middle" fill="var(--acc)" font-size="14" font-weight="700">0.00</text></g>
+<g class="cmp" tabindex="0" data-k="vm"><circle class="hl" cx="400" cy="130" r="22" fill="var(--card)" stroke="currentColor" stroke-width="2.5"/><text x="400" y="135" text-anchor="middle" fill="currentColor" font-size="14" font-weight="700">V</text><text id="vt" x="432" y="170" fill="var(--acc)" font-size="14" font-weight="700">0.00</text></g>
+<g class="cmp" tabindex="0" data-k="led"><circle id="gl" cx="500" cy="130" r="30" fill="#f33" opacity="0" filter="url(#bl)"/><rect class="hl" x="470" y="95" width="60" height="70" fill="var(--card)" stroke="none" opacity=".01"/><rect x="500" y="40" width="0" height="0"/><path d="M485 108H515L500 135Z" fill="var(--card)" stroke="currentColor" stroke-width="2.5"/><path d="M485 140H515" stroke="currentColor" stroke-width="3"/><path d="M522 112l16-12m-6 0h6v6M526 128l16-12m-6 0h6v6" stroke="currentColor" fill="none" stroke-width="2"/><text x="440" y="200" fill="currentColor" font-size="14">LED</text></g></svg>
+<div id="info">Asbobga bosing: u haqda maʼlumot va hozirgi qiymatlar shu yerda chiqadi.</div></div>
+<div class="card"><b class="lab">Yorqinlik</b><div style="display:flex;align-items:center;gap:14px;margin:6px 0"><div id="bulb" style="width:70px;height:70px;border-radius:50%;background:#555;flex:none;transition:box-shadow .1s"></div><div><div>Yorqinlik: <b id="br">0 %</b></div><div>Toʻgʻri yoʻnalishda LED qiymati: U<sub>LED</sub> = <b id="ul">0</b> V</div><div id="st" class="sub"></div></div></div>
+<div class="f" style="font-size:1rem" id="fx">I = I₀ [ exp( eU / nkT ) − 1 ]</div></div></div>
+<div class="card"><canvas id="gr" width="900" height="460" aria-label="VAX grafigi (millimetrli qogʻoz)"></canvas>
+<p class="sub" style="margin:6px 0">Nuqta — hozirgi holat, qalin nuqtalar — yozib olingan oʻlchovlar. Teskari tok nanoamperlarda boʻlgani uchun chap tomonda chiziq nolga yopishib qoladi.</p>
+<button class="act" id="rec">Oʻlchovni yozib olish</button> <button class="act g" id="clr">Jadvalni tozalash</button>
+<div class="tw"><table><thead><tr><th>№</th><th>U<sub>LED</sub>, V</th><th>I, mA</th><th>R = U/I, Ω</th><th>Yorqinlik</th></tr></thead><tbody id="tb"></tbody></table></div></div>
+</section>
+
+<section id="d3"><div class="card"><div class="ctl"><label for="bias">Siljitish kuchlanishi</label><input id="bias" type="range" min="-5" max="2" step="0.05" value="0"><output id="bo">0 V</output></div>
+<p id="bt" class="sub"></p><canvas id="c3" style="height:360px"></canvas><p class="sub" style="margin:6px 0">Sichqoncha yoki barmoq bilan aylantiring. Koʻk — elektronlar, toʻq sariq — kovaklar. Kulrang qatlam — tutuvchi qatlam.</p></div></section>
+
+<section id="q"><h2>Test: bilimingizni sinang</h2><div id="quiz"></div><h2>Oʻz-oʻzini sinash</h2>
+<details class="card"><summary>1. p-n oʻtishning fizik mohiyatini tushuntiring.</summary><p>p- va n-sohalar chegarasida zaryad tashuvchilar diffuziyasi tufayli tutuvchi qatlam va kontakt potensiallar ayirmasi hosil boʻladi; u tokni bir yoʻnalishda yaxshi, ikkinchisida yomon oʻtkazadi.</p></details>
+<details class="card"><summary>2. Yarimoʻtkazgichli diod tuzilishi va turlari.</summary><p>Bitta p-n oʻtishdan iborat; konstruksiyasiga koʻra nuqtaviy (detektorlash) va yassi (toʻgʻrilash) diodlarga boʻlinadi.</p></details>
+<details class="card"><summary>3. VAX deb nimaga aytiladi?</summary><p>Qoʻyilgan kuchlanish bilan undan oʻtayotgan tok orasidagi bogʻlanish: I = I₀[exp(eU/kT) − 1].</p></details>
+<details class="card"><summary>4. Lampali diod bilan yarimoʻtkazgichli diod afzalliklari?</summary><p>Yarimoʻtkazgichli diod kichik, qizdirish (cho‘g‘lanish) shart emas, kam quvvat sarflaydi, tez ishga tushadi va uzoq xizmat qiladi.</p></details>
+<details class="card"><summary>5. Tajriba: nega LEDni qarshiliksiz ulab boʻlmaydi?</summary><p>Ostonadan keyin tok eksponensial ortadi, shuning uchun uni I = (U<sub>manba</sub> − U<sub>LED</sub>)/R bilan cheklash kerak; aks holda LED kuyadi.</p></details></section>
+
+<script>
+const $=id=>document.getElementById(id),Vt=0.02585,N=2;
+const C=[{n:"Qizil",v:1.9,c:"#ff2a2a",l:"≈ 630 nm"},{n:"Sariq",v:2.1,c:"#ffd21a",l:"≈ 590 nm"},{n:"Yashil",v:2.2,c:"#2bff6a",l:"≈ 530 nm"},{n:"Koʻk",v:3.1,c:"#3a7bff",l:"≈ 470 nm"},{n:"Oq",v:3.1,c:"#ffffff",l:"keng spektr"}];
+const I0=c=>0.02/(Math.exp(C[c].v/(N*Vt))-1), LEAK=2e-9;
+const Id=(vd,c)=>vd>=0?I0(c)*(Math.expm1(vd/(N*Vt))):-(I0(c)+LEAK)*(1-Math.exp(vd/(N*Vt)));
+function solve(vs,R,c){if(vs<=0)return{vd:vs,i:Id(vs,c)};let a=0,b=vs;for(let k=0;k<60;k++){const m=(a+b)/2;(m+R*Id(m,c)>vs)?b=m:a=m}const vd=(a+b)/2;return{vd,i:Id(vd,c)}}
+let rec=[];
+const st=()=>{const c=+$("col").value,R=+$("rr").value,vs=+$("vs").value;const s=solve(vs,R,c);s.c=c;s.R=R;s.vs=vs;s.b=Math.min(1,Math.max(0,s.i)/0.02);return s};
+const fmt=(x,d=2)=>x.toFixed(d).replace("-0.00","0.00");
+function upd(){const s=st(),col=C[s.c];$("vso").textContent=fmt(s.vs)+" V";$("rt").textContent=s.R+" Ω";$("lam").textContent=col.n+": E="+col.v+" eV, "+col.l;
+$("mt").textContent=fmt(s.i*1000);$("vt").textContent=fmt(s.vd);$("ul").textContent=fmt(s.vd);
+const g=Math.pow(s.b,0.6);$("gl").setAttribute("fill",col.c);$("gl").setAttribute("opacity",g.toFixed(2));$("gl").setAttribute("r",20+28*g);
+$("bulb").style.background=g>0.02?col.c:"#555";$("bulb").style.opacity=g>0.02?0.35+0.65*g:1;$("bulb").style.boxShadow=`0 0 ${50*g}px ${14*g}px ${col.c}`;
+$("br").textContent=Math.round(s.b*100)+" %";
+$("st").textContent=s.vs<0?"Teskari yoʻnalish: berkituvchi qatlam, tok ≈ nA, LED yonmaydi.":s.vd<col.v-0.3?"U ostonadan past: tok deyarli oʻtmaydi, LED yonmaydi.":s.b<1?"Tok ortmoqda — yorqinlik oshmoqda.":"Tok 20 mA ga yetdi: toʻliq yorqinlik.";
+$("fx").innerHTML=`I = I₀[exp(eU/nkT) − 1] = ${s.i.toExponential(2)} A<br>R<sub>st</sub> = U/I = ${Math.abs(s.i)>1e-12?fmt(s.vd/s.i,1)+" Ω":"∞"}`;
+draw(s);return s}
+const INFO={src:"<b>Manba E.</b> Oʻzgarmas kuchlanish: −5 dan +5 V gacha. Manfiy qiymat — diod teskari ulangan.",res:"<b>Ketma-ket qarshilik R.</b> Tokni cheklaydi: I = (E − U<sub>LED</sub>)/R. Hozir R = ",ma:"<b>Milliampermetr.</b> Zanjir toki. Ketma-ket ulanadi. Hozir: ",vm:"<b>Voltmetr.</b> Diod uchlaridagi kuchlanish. Parallel ulanadi. Hozir: ",led:"<b>LED.</b> Toʻgʻri tokda rekombinatsiya fotonlar chiqaradi. Rang E<sub>g</sub> ga bogʻliq: λ ≈ 1240/E<sub>g</sub>. Hozir: "};
+function showInfo(k){const s=st();let t=INFO[k];if(k=="res")t+=s.R+" Ω; qarshilikdagi kuchlanish "+fmt(s.R*s.i)+" V.";if(k=="ma")t+=fmt(s.i*1000,3)+" mA.";if(k=="vm")t+=fmt(s.vd)+" V.";if(k=="led")t+=C[s.c].n+", yorqinlik "+Math.round(s.b*100)+" %, ostona ≈ "+C[s.c].v+" V.";$("info").innerHTML=t}
+document.querySelectorAll(".cmp").forEach(g=>{g.onclick=()=>showInfo(g.dataset.k);g.onkeydown=e=>{if(e.key=="Enter"||e.key==" ")showInfo(g.dataset.k)}});
+const cv=$("gr"),cx=cv.getContext("2d"),X0=-5,X1=4,Y0=-4,Y1=40;
+const px=x=>(x-X0)/(X1-X0)*(cv.width-70)+50,py=y=>cv.height-40-(y-Y0)/(Y1-Y0)*(cv.height-60);
+function draw(s){const cs=getComputedStyle(document.documentElement),ink=cs.getPropertyValue("--ink"),mu=cs.getPropertyValue("--mute"),ac=cs.getPropertyValue("--acc"),gr=cs.getPropertyValue("--line");
+cx.clearRect(0,0,cv.width,cv.height);cx.font="16px sans-serif";cx.lineWidth=1;
+for(let x=-5;x<=4;x+=.5){cx.strokeStyle=gr;cx.globalAlpha=x%1?.35:.8;cx.beginPath();cx.moveTo(px(x),py(Y0));cx.lineTo(px(x),py(Y1));cx.stroke()}
+for(let y=-4;y<=40;y+=2){cx.strokeStyle=gr;cx.globalAlpha=y%10?.35:.8;cx.beginPath();cx.moveTo(px(X0),py(y));cx.lineTo(px(X1),py(y));cx.stroke()}
+cx.globalAlpha=1;cx.strokeStyle=ink;cx.lineWidth=2;cx.beginPath();cx.moveTo(px(X0),py(0));cx.lineTo(px(X1),py(0));cx.moveTo(px(0),py(Y0));cx.lineTo(px(0),py(Y1));cx.stroke();
+cx.fillStyle=mu;for(let x=-5;x<=4;x++)cx.fillText(x,px(x)-4,py(0)+18);for(let y=10;y<=40;y+=10)cx.fillText(y,px(0)+6,py(y)+5);cx.fillText("U, V",px(X1)-40,py(0)-8);cx.fillText("I, mA",px(0)+8,py(Y1)+14);
+cx.strokeStyle=ac;cx.lineWidth=2.5;cx.beginPath();let first=1;for(let v=-5;v<=4;v+=.01){const y=Math.min(Id(v,s.c)*1000,Y1);if(y>=Y1&&v>0){cx.lineTo(px(v),py(y));break}first?cx.moveTo(px(v),py(y)):cx.lineTo(px(v),py(y));first=0}cx.stroke();
+rec.forEach(r=>{cx.fillStyle=C[r.c].c=="#ffffff"?"#999":C[r.c].c;cx.strokeStyle=ink;cx.lineWidth=1.5;cx.beginPath();cx.arc(px(r.vd),py(Math.min(r.i*1000,Y1)),6,0,7);cx.fill();cx.stroke()});
+cx.fillStyle=ink;cx.beginPath();cx.arc(px(s.vd),py(Math.min(s.i*1000,Y1)),5,0,7);cx.fill()}
+$("rec").onclick=()=>{const s=st();rec.push(s);const i=rec.length;$("tb").insertAdjacentHTML("beforeend",`<tr><td>${i}</td><td>${fmt(s.vd)}</td><td>${fmt(s.i*1000,3)}</td><td>${Math.abs(s.i)>1e-9?fmt(s.vd/s.i,0):"∞"}</td><td>${Math.round(s.b*100)} %</td></tr>`);draw(s)};
+$("clr").onclick=()=>{rec=[];$("tb").innerHTML="";upd()};
+["vs","rr","col"].forEach(i=>$(i).oninput=upd);
+/* nazariya rasmi: tashuvchilar */
+(()=>{let h="";for(let i=0;i<16;i++){h+=`<circle cx="${60+(i%8)*30+Math.random()*12}" cy="${50+Math.floor(i/8)*40+Math.random()*10}" r="5" fill="#e5744a"/><circle cx="${425+(i%8)*30+Math.random()*12}" cy="${50+Math.floor(i/8)*40+Math.random()*10}" r="5" fill="#3a7bff"/>`}$("dots").innerHTML=h})();
+/* tablar */
+let t3=0;nav=document.querySelectorAll("nav button");nav.forEach(b=>b.onclick=()=>{nav.forEach(x=>x.setAttribute("aria-selected",x==b));document.querySelectorAll("section").forEach(s=>s.classList.toggle("on",s.id==b.dataset.t));if(b.dataset.t=="d3")init3();if(b.dataset.t=="lab")upd()});
+/* 3D */
+function init3(){if(t3){size3();return}t3=1;const cv=$("c3");let R;try{R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true})}catch(e){$("bt").textContent="Brauzeringiz WebGL ni qoʻllamaydi.";return}
+const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(45,2,.1,100);cam.position.set(0,3,11);cam.lookAt(0,0,0);sc.add(new THREE.AmbientLight(0xffffff,.7));const dl=new THREE.DirectionalLight(0xffffff,.8);dl.position.set(3,6,5);sc.add(dl);
+const grp=new THREE.Group();sc.add(grp);const mk=(c,o)=>new THREE.MeshLambertMaterial({color:c,transparent:true,opacity:o});
+const P=new THREE.Mesh(new THREE.BoxGeometry(1,2.4,2.4),mk(0xe5744a,.28)),Nn=new THREE.Mesh(new THREE.BoxGeometry(1,2.4,2.4),mk(0x3a7bff,.28)),D=new THREE.Mesh(new THREE.BoxGeometry(1,2.4,2.4),mk(0x999999,.55));grp.add(P,Nn,D);
+const M=60,pts=[],geo=[];const mkpts=(col)=>{const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(new Float32Array(M*3),3));const p=new THREE.Points(g,new THREE.PointsMaterial({color:col,size:.2}));grp.add(p);return p};
+const E=mkpts(0x3a7bff),H=mkpts(0xff9a3c);const ed=[],hd=[];for(let i=0;i<M;i++){ed.push({x:Math.random()*4.5,y:(Math.random()-.5)*2.2,z:(Math.random()-.5)*2.2});hd.push({x:-Math.random()*4.5,y:(Math.random()-.5)*2.2,z:(Math.random()-.5)*2.2})}
+let ry=-.5,rx=.15,dn=0,lx=0,ly=0;cv.onpointerdown=e=>{dn=1;lx=e.clientX;ly=e.clientY;cv.setPointerCapture(e.pointerId)};cv.onpointerup=()=>dn=0;cv.onpointermove=e=>{if(dn){ry+=(e.clientX-lx)*.01;rx+=(e.clientY-ly)*.01;lx=e.clientX;ly=e.clientY}};cv.style.touchAction="none";
+function size3(){const w=cv.clientWidth,h=cv.clientHeight;R.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}size3();addEventListener("resize",size3);
+function step(){const b=+$("bias").value;$("bo").textContent=fmt(b)+" V";const d=Math.max(.15,Math.min(2.2,.9-.3*b)),thr=b>0.6,sp=thr?.02+.05*(b-.6):b<0?.015:0;
+const txt=b<0?"Teskari yoʻnalish: oʻtish kengayadi, asosiy tashuvchilar chetga chekinadi, tok ≈ I₀.":thr?"Toʻgʻri yoʻnalish, U > ostona: toʻsiq pasaydi, tashuvchilar oʻtishdan oʻtmoqda, tok katta.":"Toʻgʻri yoʻnalish, lekin U ostonadan past: toʻsiq hali baland.";$("bt").textContent=txt+" Tutuvchi qatlam kengligi ≈ "+fmt(d*2,1)+" shartli birlik.";
+D.scale.x=d*2;P.scale.x=(4.5-d)/1;P.position.x=-d-(4.5-d)/2;Nn.scale.x=(4.5-d)/1;Nn.position.x=d+(4.5-d)/2;
+const ea=E.geometry.attributes.position,ha=H.geometry.attributes.position;
+for(let i=0;i<M;i++){const e=ed[i],h=hd[i];const j=(Math.random()-.5)*.02;
+if(b<0){e.x+=sp;h.x-=sp;if(e.x>4.5||e.x<d)e.x=b<0&&e.x<d?d+Math.random()*.3:d+.05;if(h.x<-4.5||h.x>-d)h.x=-d-.05}
+else if(thr){e.x-=sp;h.x+=sp;if(e.x<-4.5)e.x=4.5;if(h.x>4.5)h.x=-4.5}
+else{e.x+=j*3;h.x+=j*3;if(e.x<d)e.x=d+.05;if(h.x>-d)h.x=-d-.05}
+e.y+=j;e.z+=j;h.y+=j;h.z+=j;[e,h].forEach(q=>{q.y=Math.max(-1.1,Math.min(1.1,q.y));q.z=Math.max(-1.1,Math.min(1.1,q.z))});
+ea.setXYZ(i,e.x,e.y,e.z);ha.setXYZ(i,h.x,h.y,h.z)}ea.needsUpdate=ha.needsUpdate=true;
+grp.rotation.y=ry;grp.rotation.x=rx;R.render(sc,cam);requestAnimationFrame(step)}step()}
+let qok=0,thok=false;
+function prog(){const f=rec.filter(r=>r.vd>0.3).length,r2=rec.filter(r=>r.vs<0).length;const T=[[f>=6,"Toʻgʻri yoʻnalishda 6 ta oʻlchov yozing ("+Math.min(f,6)+"/6)"],[r2>=2,"Teskari yoʻnalishda 2 ta oʻlchov yozing ("+Math.min(r2,2)+"/2)"],[thok,"LEDning ostona kuchlanishini toping"],[qok>=3,"Testda 3 ta toʻgʻri javob bering ("+qok+"/4)"]];
+$("tl").innerHTML=T.map(t=>`<li>${t[0]?"✅":"⬜"} ${t[1]}</li>`).join("");const all=T.every(t=>t[0]);$("lb").setAttribute("fill",all?"#ffd21a":"#888");$("lg").setAttribute("opacity",all?.9:0);$("gm").textContent=all?"Laboratoriya bajarildi! Lampochka yondi 💡":"Barcha vazifalarni bajaring: lampochka yonadi."}
+$("rec").addEventListener("click",prog);$("clr").addEventListener("click",prog);
+$("th_ok").onclick=()=>{const v=parseFloat($("th_in").value),c=+$("col").value;thok=Math.abs(v-C[c].v)<=.4;$("gm2").textContent=thok?"Toʻgʻri!":"Yaqin emas: grafikda tok keskin ortadigan joyni qidiring.";prog()};
+const QZ=[["Om qonuni qaysi formula bilan yoziladi?",["I = U/R","I = U·R","U = I/R"],0],["LED yorqinligi bevosita nimaga bogʻliq?",["Tok kuchiga","Simlar uzunligiga","Xona haroratiga faqat"],0],["Teskari ulangan LED nima qiladi?",["Yonmaydi, tok ≈ nA","Kuchliroq yonadi","Rangini oʻzgartiradi"],0],["Xona haroratida kT/e taxminan nechaga teng?",["25,9 mV","2,59 V","259 mV"],0]];
+QZ.forEach((q,i)=>{const d=document.createElement("div");d.className="card";d.innerHTML=`<b>${i+1}. ${q[0]}</b><br>`;q[1].map((t,j)=>[t,j]).sort(()=>Math.random()-.5).forEach(([t,j])=>{const b=document.createElement("button");b.className="act g";b.style.margin="6px 6px 0 0";b.textContent=t;b.onclick=()=>{if(d.dataset.done)return;d.dataset.done=1;if(j==q[2]){qok++;b.style.borderColor="var(--ok)";b.textContent="✅ "+t}else{b.textContent="❌ "+t}prog()};d.appendChild(b)});$("quiz").appendChild(d)});
+prog();
+document.querySelectorAll("[data-go]").forEach(a=>a.onclick=e=>{e.preventDefault();$(a.dataset.go).scrollIntoView({behavior:"smooth"})});
+upd();
+</script></main></body></html>
